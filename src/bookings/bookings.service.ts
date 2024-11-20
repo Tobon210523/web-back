@@ -18,7 +18,6 @@ export class BookingsService {
   async createBooking(propertyId: string, createBookingDto: CreateBookingDto) {
     const {user_id,start_date, end_date } = createBookingDto;
 
-    // Verificar si la propiedad existe
     const listing = await this.listingRepository.findOne({
       where: { listing_id: propertyId },
     });
@@ -27,7 +26,6 @@ export class BookingsService {
       throw new NotFoundException(`La propiedad con ID ${propertyId} no fue encontrada`);
     }
 
-    // Validar que las fechas sean válidas
     const startDate = new Date(start_date);
     const endDate = new Date(end_date);
 
@@ -35,22 +33,19 @@ export class BookingsService {
       throw new BadRequestException('La fecha de inicio debe ser anterior a la fecha de fin');
     }
 
-    // Calcular el precio total
     const days = Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     );
     const totalPrice = days * listing.price_per_night;
 
-    // Crear la reserva
     const booking = this.bookingRepository.create({
       listing,
-      user: { user_id: user_id }, // Relación con el usuario autenticado
+      user: { user_id: user_id },
       start_date: startDate,
       end_date: endDate,
       total_price: totalPrice,
     });
 
-    // Guardar la reserva en la base de datos
      const {user, ...data} = await this.bookingRepository.save(booking);
     return data
   }
@@ -95,25 +90,8 @@ export class BookingsService {
       throw new BadRequestException('La reserva no puede ser cancelada con menos de 24 horas de antelación');
     }
 
-    // Eliminar la reserva
     await this.bookingRepository.remove(booking);
 
     return { message: `La reserva con ID ${bookingId} ha sido cancelada correctamente` };
-  }
-
-  findAll() {
-    return `This action returns all bookings`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} booking`;
-  }
-
-  update(id: number, updateBookingDto: UpdateBookingDto) {
-    return `This action updates a #${id} booking`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} booking`;
   }
 }

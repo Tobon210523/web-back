@@ -23,7 +23,6 @@ export class ReviewsService {
   async leaveReview(propertyId: string, userId: string, createReviewDto: CreateReviewDto) {
     const { rating, comment } = createReviewDto;
 
-    // Verificar si la propiedad existe
     const listing = await this.listingRepository.findOne({
       where: { listing_id: propertyId },
     });
@@ -32,7 +31,6 @@ export class ReviewsService {
       throw new NotFoundException(`La propiedad con ID ${propertyId} no fue encontrada`);
     }
 
-    // Verificar si el usuario ha reservado esta propiedad
     const booking = await this.bookingRepository.findOne({
       where: { listing: { listing_id: propertyId }, user: { user_id: userId } },
     });
@@ -41,7 +39,6 @@ export class ReviewsService {
       throw new ForbiddenException('No puedes dejar una valoración para una propiedad que no has reservado');
     }
 
-    // Verificar si el usuario ya dejó una valoración para esta propiedad
     const existingReview = await this.reviewRepository.findOne({
       where: { listing: { listing_id: propertyId }, user: { user_id: userId } },
     });
@@ -50,10 +47,9 @@ export class ReviewsService {
       throw new BadRequestException('Ya has dejado una valoración para esta propiedad');
     }
 
-    // Crear y guardar la valoración
     const review = this.reviewRepository.create({
       listing,
-      user: { user_id: userId }, // Relación con el usuario autenticado
+      user: { user_id: userId }, 
       rating,
       comment,
     });
